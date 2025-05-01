@@ -1,0 +1,87 @@
+plugins {
+    id 'java'
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
+}
+
+group = 'cn.huohuas001'
+version = '1.0.0'
+
+repositories {
+    mavenCentral()
+    maven {
+        name = "spigotmc-repo"
+        url = "https://hub.spigotmc.org/nexus/content/repositories/snapshots/"
+    }
+    maven {
+        name = "sonatype"
+        url = "https://oss.sonatype.org/content/groups/public/"
+    }
+    maven {
+        name = "placeholder"
+        url = 'https://repo.extendedclip.com/releases/'
+    }
+    maven { url 'https://jitpack.io' }
+}
+
+dependencies {
+    compileOnly "org.spigotmc:spigot-api:1.13-R0.1-SNAPSHOT"
+    implementation('com.github.oshi:oshi-core:6.4.9') {
+        exclude group: 'org.slf4j' // 如果不需要日志
+    }
+    implementation 'com.github.Anon8281:UniversalScheduler:0.1.6'
+    compileOnly 'me.clip:placeholderapi:2.11.6'
+    compileOnly fileTree(dir: 'libs', include: ['*.jar'])
+}
+
+
+jar {
+    archiveFileName = 'HuHoMonitor.jar'
+    manifest {
+        attributes 'Main-Class': 'cn.huohuas001.huhomonitor'
+    }
+}
+
+// 删除原有的 jar 配置块
+shadowJar {
+    archiveFileName = "HuHoMonitor-${project.version}-Spigot.jar"
+    manifest {
+        attributes 'Main-Class': 'cn.huohuas001.huhomonitor'
+    }
+    relocate 'com.github.Anon8281.universalScheduler', 'cn.huohuas001.huhomonitor.universalScheduler'
+    minimize() // 自动移除未使用的类
+    exclude 'META-INF/maven/**' // 排除冗余文件
+    exclude '**/*.properties' // 排除非必要配置文件
+
+    // 显式包含 HuHoBot 的依赖
+    //from(project.configurations.compileClasspath)
+}
+
+def targetJavaVersion = 8
+java {
+    def javaVersion = JavaVersion.toVersion(targetJavaVersion)
+    sourceCompatibility = javaVersion
+    targetCompatibility = javaVersion
+    if (JavaVersion.current() < javaVersion) {
+        toolchain.languageVersion = JavaLanguageVersion.of(targetJavaVersion)
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+
+    if (targetJavaVersion >= 10 || JavaVersion.current().isJava10Compatible()) {
+        options.release.set(targetJavaVersion)
+    }
+}
+
+processResources {
+    def props = [version: version]
+    inputs.properties props
+    filteringCharset 'UTF-8'
+    filesMatching('plugin.yml') {
+        expand props
+    }
+    filesMatching('config.yml') {
+        expand props
+    }
+}

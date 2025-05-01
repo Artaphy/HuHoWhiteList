@@ -1,0 +1,1 @@
+formatString: "🖥 CPU使用率: {CpuUsage}\\n💾 内存使用: {MemoryUsage}\\n💽 磁盘空间: {DiskUsage}"

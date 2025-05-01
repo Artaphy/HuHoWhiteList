@@ -1,1 +1,6 @@
+#  格式化字符串
+#  支持变量:
+#  {CpuUsage}   CPU使用率
+#  {MemoryUsage}   内存使用率
+#  {DiskUsage}   磁盘使用率
 formatString: "🖥 CPU使用率: {CpuUsage}\\n💾 内存使用: {MemoryUsage}\\n💽 磁盘空间: {DiskUsage}"

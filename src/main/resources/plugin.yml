@@ -3,5 +3,7 @@ version: '${version}'
 main: cn.huohuas001.huhomonitor.HuHoMonitor
 api-version: '1.16'
 depend: [HuHoBot]
+softdepend:
+  - "PlaceholderAPI"
 authors: [HuoHuas001]
 description: HuHoBot Server Status Monitor

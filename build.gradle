@@ -24,18 +24,16 @@ repositories {
 }
 
 dependencies {
+    implementation 'com.h2database:h2:1.4.200'
     compileOnly "org.spigotmc:spigot-api:1.13-R0.1-SNAPSHOT"
-    implementation('com.github.oshi:oshi-core:6.4.9') {
-        exclude group: 'org.slf4j' // 如果不需要日志
-    }
+    implementation 'org.jetbrains:annotations:24.0.1'
     implementation 'com.github.Anon8281:UniversalScheduler:0.1.6'
-    compileOnly 'me.clip:placeholderapi:2.11.6'
     compileOnly fileTree(dir: 'libs', include: ['*.jar'])
 }
 
 
 jar {
-    archiveFileName = 'HuHoMonitor.jar'
+    archiveFileName = 'HuHoWhiteList.jar'
     manifest {
         attributes 'Main-Class': 'cn.huohuas001.huhomonitor'
     }
@@ -43,12 +41,13 @@ jar {
 
 // 删除原有的 jar 配置块
 shadowJar {
-    archiveFileName = "HuHoMonitor-${project.version}-Spigot.jar"
+    archiveFileName = "HuHoWhiteList-${project.version}-Spigot.jar"
     manifest {
-        attributes 'Main-Class': 'cn.huohuas001.huhomonitor'
+        attributes 'Main-Class': 'cn.huohuas001.huhowhitelist'
     }
-    relocate 'com.github.Anon8281.universalScheduler', 'cn.huohuas001.huhomonitor.universalScheduler'
-    minimize() // 自动移除未使用的类
+    relocate 'org.h2', 'cn.huohuas001.shaded.h2'
+    relocate 'com.github.Anon8281.universalScheduler', 'cn.huohuas001.huhowhitelist.universalScheduler'
+    //minimize() // 自动移除未使用的类
     exclude 'META-INF/maven/**' // 排除冗余文件
     exclude '**/*.properties' // 排除非必要配置文件
 

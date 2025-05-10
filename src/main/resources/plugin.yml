@@ -1,9 +1,9 @@
-name: HuHoMonitor
+name: HuHoWhiteList
 version: '${version}'
-main: cn.huohuas001.huhomonitor.HuHoMonitor
+main: cn.huohuas001.huhowhitelist.HuHoWhiteList
 api-version: '1.16'
 depend: [HuHoBot]
 softdepend:
   - "PlaceholderAPI"
 authors: [HuoHuas001]
-description: HuHoBot Server Status Monitor
+description: HuHoBot Server BindQQ WhiteList

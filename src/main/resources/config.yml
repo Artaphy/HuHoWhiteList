@@ -1,6 +1,18 @@
-#  格式化字符串
-#  支持变量:
-#  {CpuUsage}   CPU使用率
-#  {MemoryUsage}   内存使用率
-#  {DiskUsage}   磁盘使用率
-formatString: "🖥 CPU使用率: {CpuUsage}\\n💾 内存使用: {MemoryUsage}\\n💽 磁盘空间: {DiskUsage}"
+keyWord:
+  apply: "申请白名单"
+  delete: "取消白名单"
+
+whiteList:
+  add: "whitelist add {name}"
+  del: "whitelist remove {name}"
+
+language:
+  noBind: "未查询到您的绑定QQ信息，请使用/认证 <qq>来进行绑定QQ"
+  noPlayerName: "玩家名有误，请重试"
+  alreadyBind: "您已经绑定过该账号"
+  execute: "提交绑定成功,返回值如下:\n{ret}"
+  deleteNotFound: "未找到{data}的有效信息"
+  deleteSuccess: "已删除玩家 {player} (QQ: {qq}) 的白名单"
+  deleteFail: "删除操作失败，请检查日志"
+  noParam:  "缺少参数"
+  noAdmin: "您不是管理员"

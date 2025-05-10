@@ -80,7 +80,7 @@ jobs:
         with:
           name: release-artifacts
           path: |
-            build/libs/HuHoMonitor-*.jar
+            build/libs/HuHoWhiteList-*.jar
           retention-days: 1  # 仅保留1天临时文件
 
   release:
@@ -145,4 +145,4 @@ jobs:
             - 构建时间: ${{ github.run_created_at }}
             - 提交哈希: [${{ github.sha }}](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }})
           files: |
-            artifacts/HuHoMonitor-*.jar
+            artifacts/HuHoWhiteList-*.jar

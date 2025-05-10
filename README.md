@@ -1,8 +1,8 @@
 # HuHoWhiteList
 
-[![GitHub Release](https://img.shields.io/github/v/release/HuHoBot/HuHoMonitor?style=for-the-badge)](https://github.com/HuHoBot/HuHoWhiteList/releases)
-[![License](https://img.shields.io/github/license/HuHoBot/HuHoMonitor?style=for-the-badge)](https://github.com/HuHoBot/HuHoWhiteList/blob/main/LICENSE)
-[![Build Status](https://img.shields.io/github/actions/workflow/status/HuHoBot/HuHoMonitor/release.yml?style=for-the-badge)](https://github.com/HuHoBot/HuHoWhiteList/actions)
+[![GitHub Release](https://img.shields.io/github/v/release/HuHoBot/HuHoWhiteList?style=for-the-badge)](https://github.com/HuHoBot/HuHoWhiteList/releases)
+[![License](https://img.shields.io/github/license/HuHoBot/HuHoWhiteList?style=for-the-badge)](https://github.com/HuHoBot/HuHoWhiteList/blob/main/LICENSE)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/HuHoBot/HuHoWhiteList/release.yml?style=for-the-badge)](https://github.com/HuHoBot/HuHoWhiteList/actions)
 
 ## HuHoBot 拓展插件
 HuHoBot 拓展插件，用于群内绑定QQ后可自助申请白名单

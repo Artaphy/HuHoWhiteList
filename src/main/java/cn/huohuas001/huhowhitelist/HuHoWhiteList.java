@@ -1,8 +1,5 @@
 package cn.huohuas001.huhowhitelist;
 
-// 数据库相关
-import java.sql.*;
-
 // Bukkit 相关
 import com.alibaba.fastjson2.JSONObject;
 import org.bukkit.event.EventHandler;
@@ -18,12 +15,19 @@ import com.github.Anon8281.universalScheduler.scheduling.schedulers.TaskSchedule
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
+import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.DumperOptions;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.FileReader;
+import java.io.IOException;
 
 public final class HuHoWhiteList extends JavaPlugin implements Listener {
     private Logger logger; //Logger
     private static TaskScheduler scheduler;
     private static HuHoWhiteList plugin; //插件对象
-    private Connection connection;
+    private File bindingsFile;
+    private Map<String, String> bindings = new HashMap<>(); // QQ -> 玩家名
 
     /**
      * 获取插件
@@ -63,8 +67,7 @@ public final class HuHoWhiteList extends JavaPlugin implements Listener {
         this.getServer().getPluginManager().registerEvents(this, huhoBot);
 
         this.saveDefaultConfig();
-
-        initDatabase();
+        initBindingsYaml();
 
         logger.info("HuHoWhiteList Loaded. By HuoHuas001");
     }
@@ -78,129 +81,119 @@ public final class HuHoWhiteList extends JavaPlugin implements Listener {
         return scheduler;
     }
 
-    private void initDatabase() {
-        try {
-            Class.forName("cn.huohuas001.shaded.h2.Driver");
-
-            // 获取跨平台路径
-            String dbPath = getDataFolder().getAbsolutePath().replace('\\', '/');
-            // 使用兼容性参数
-            connection = DriverManager.getConnection(
-                    "jdbc:h2:file:" + dbPath + "/bindings;" +
-                            "DB_CLOSE_DELAY=-1;" +
-                            "DATABASE_TO_UPPER=false;" // 禁用自动转大写
-            );
-            try (Statement stmt = connection.createStatement()) {
-                stmt.execute("CREATE TABLE IF NOT EXISTS bindings (" +
-                        "qq VARCHAR(20) PRIMARY KEY," +
-                        "player_name VARCHAR(16) NOT NULL UNIQUE)");
+    private void initBindingsYaml() {
+        bindingsFile = new File(getDataFolder(), "bindings.yml");
+        if (!bindingsFile.exists()) {
+            try {
+                getDataFolder().mkdirs();
+                bindingsFile.createNewFile();
+                saveBindings();
+            } catch (IOException e) {
+                logger.severe("无法创建 bindings.yml: " + e.getMessage());
             }
-        } catch (Exception e) {
-            logger.severe("数据库初始化失败: " + e.getMessage());
-            e.printStackTrace();
+        }
+        loadBindings();
+    }
+
+    private void loadBindings() {
+        Yaml yaml = new Yaml();
+        try (FileReader reader = new FileReader(bindingsFile)) {
+            Object data = yaml.load(reader);
+            bindings.clear();
+            if (data instanceof Map) {
+                Map<?, ?> map = (Map<?, ?>) data;
+                for (Map.Entry<?, ?> entry : map.entrySet()) {
+                    if (entry.getKey() != null && entry.getValue() != null) {
+                        bindings.put(entry.getKey().toString(), entry.getValue().toString());
+                    }
+                }
+            }
+        } catch (IOException e) {
+            logger.warning("读取 bindings.yml 失败: " + e.getMessage());
         }
     }
 
-    // 绑定校验方法
+    private void saveBindings() {
+        Yaml yaml = new Yaml();
+        try (FileWriter writer = new FileWriter(bindingsFile)) {
+            yaml.dump(bindings, writer);
+        } catch (IOException e) {
+            logger.warning("写入 bindings.yml 失败: " + e.getMessage());
+        }
+    }
+
+    // 检查是否已绑定
     private boolean isAlreadyBound(String qq, String playerName) {
-        try (PreparedStatement ps = connection.prepareStatement(
-                "SELECT 1 FROM bindings WHERE qq=? OR player_name=?")) {
-            ps.setString(1, qq);
-            ps.setString(2, playerName);
-            return ps.executeQuery().next();
-        } catch (SQLException e) {
-            logger.warning("数据库查询异常: " + e.getMessage());
-            return true; // 异常时阻止操作
-        }
+        loadBindings();
+        return bindings.containsKey(qq) || bindings.containsValue(playerName);
     }
 
-    // 存储绑定方法
+    // 存储绑定
     private void saveBinding(String qq, String playerName) {
-        try (PreparedStatement ps = connection.prepareStatement(
-                "INSERT INTO bindings (qq, player_name) VALUES (?, ?)")) {
-            ps.setString(1, qq);
-            ps.setString(2, playerName);
-            ps.executeUpdate();
-        } catch (SQLException e) {
-            logger.warning("数据存储失败: " + e.getMessage());
-        }
+        loadBindings();
+        bindings.put(qq, playerName);
+        saveBindings();
     }
 
+    // 删除绑定
     private int deleteBinding(String identifier) {
-        try (PreparedStatement ps = connection.prepareStatement(
-                "DELETE FROM bindings WHERE qq=? OR player_name=?")) {
-            ps.setString(1, identifier);
-            ps.setString(2, identifier);
-            return ps.executeUpdate();
-        } catch (SQLException e) {
-            logger.warning("数据删除失败: " + e.getMessage());
-            return -1;
+        loadBindings();
+        String removedKey = null;
+        // 先按 QQ
+        if (bindings.containsKey(identifier)) {
+            removedKey = identifier;
+        } else {
+            // 再按玩家名
+            for (Map.Entry<String, String> entry : bindings.entrySet()) {
+                if (entry.getValue().equals(identifier)) {
+                    removedKey = entry.getKey();
+                    break;
+                }
+            }
         }
+        if (removedKey != null) {
+            bindings.remove(removedKey);
+            saveBindings();
+            return 1;
+        }
+        return 0;
     }
 
-    // 根据QQ号获取玩家名
+    // 根据 QQ 获取玩家名
     public String getNameByQQ(String qq) {
-        try (PreparedStatement ps = connection.prepareStatement(
-                "SELECT player_name FROM bindings WHERE qq = ?")) {
-            ps.setString(1, qq);
-            try (ResultSet rs = ps.executeQuery()) {
-                return rs.next() ? rs.getString("player_name") : null;
-            }
-        } catch (SQLException e) {
-            logger.warning("QQ号查询玩家名失败: " + e.getMessage());
-            return null;
-        }
+        loadBindings();
+        return bindings.getOrDefault(qq, null);
     }
 
-    // 根据玩家名获取QQ号
+    // 根据玩家名获取 QQ
     public String getQQByName(String playerName) {
-        try (PreparedStatement ps = connection.prepareStatement(
-                "SELECT qq FROM bindings WHERE player_name = ?")) {
-            ps.setString(1, playerName);
-            try (ResultSet rs = ps.executeQuery()) {
-                return rs.next() ? rs.getString("qq") : null;
+        loadBindings();
+        for (Map.Entry<String, String> entry : bindings.entrySet()) {
+            if (entry.getValue().equals(playerName)) {
+                return entry.getKey();
             }
-        } catch (SQLException e) {
-            logger.warning("玩家名查询QQ号失败: " + e.getMessage());
-            return null;
         }
+        return null;
     }
 
+    // 获取绑定信息
     public Map<String, String> getBindingInfo(String identifier) {
+        loadBindings();
         Map<String, String> result = new HashMap<>();
-
-        // 先尝试作为QQ查询
-        try (PreparedStatement ps = connection.prepareStatement(
-                "SELECT qq, player_name FROM bindings WHERE qq = ?")) {
-            ps.setString(1, identifier);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    result.put("qq", rs.getString("qq"));
-                    result.put("playerName", rs.getString("player_name"));
-                    return result;
-                }
-            }
-        } catch (SQLException e) {
-            //logger.warning("QQ查询异常: " + e.getMessage());
+        if (bindings.containsKey(identifier)) {
+            result.put("qq", identifier);
+            result.put("playerName", bindings.get(identifier));
+            return result;
         }
-
-        // 若未找到，再尝试作为玩家名查询
-        try (PreparedStatement ps = connection.prepareStatement(
-                "SELECT qq, player_name FROM bindings WHERE player_name = ?")) {
-            ps.setString(1, identifier);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    result.put("qq", rs.getString("qq"));
-                    result.put("playerName", rs.getString("player_name"));
-                }
+        for (Map.Entry<String, String> entry : bindings.entrySet()) {
+            if (entry.getValue().equals(identifier)) {
+                result.put("qq", entry.getKey());
+                result.put("playerName", entry.getValue());
+                return result;
             }
-        } catch (SQLException e) {
-            //logger.warning("玩家名查询异常: " + e.getMessage());
         }
-
-        return result.isEmpty() ? null : result;
+        return null;
     }
-
 
 
     private String getLanguage(String LanguageKey){

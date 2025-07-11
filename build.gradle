@@ -24,7 +24,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.h2database:h2:1.4.200'
+    implementation 'org.yaml:snakeyaml:2.2'
     compileOnly "org.spigotmc:spigot-api:1.13-R0.1-SNAPSHOT"
     implementation 'org.jetbrains:annotations:24.0.1'
     implementation 'com.github.Anon8281:UniversalScheduler:0.1.6'

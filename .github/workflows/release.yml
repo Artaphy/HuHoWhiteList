@@ -14,6 +14,7 @@ on:
       - '.github/workflows/release.yml'
       - 'src/**'
       - 'build.gradle'
+  workflow_dispatch:
 
 env:
   GRADLE_VERSION: 7.6.3
